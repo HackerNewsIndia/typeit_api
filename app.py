@@ -60,19 +60,20 @@ def list_comments(space_name):
         return jsonify({'error': f'TypeIt Space "{space_name}" not found'}), 404
 
 
-@app.route('/add_to_diary_blog', methods=['POST'])
-def add_to_diary_blog():
+@app.route('/post_comment', methods=['POST'])
+def post_comment():
     data = request.get_json()
-    space_name = data.get('space_name')
+    blogId = data.get('blog_id')
+    postId = data.get('post_id')
     comment = data.get('comment')
 
     # Update comments for the TypeIt space in the MongoDB collection
-    result = typeit_space_collection.update_one({'space_name': space_name}, {'$push': {'comments': comment}})
+    result = typeit_space_collection.update_one({'blogId': blogId}, {'$push': {'comments': comment, 'postId': postId}})
 
     if result.modified_count > 0:
         return jsonify({'message': 'Comment added successfully'})
     else:
-        return jsonify({'error': f'TypeIt Space "{space_name}" not found'}), 404
+        return jsonify({'error': f'TypeIt Space of "{blogId}" not found'}), 404
 
 
 if __name__ == '__main__':
