@@ -68,7 +68,7 @@ def post_comment():
     comment = data.get('comment')
 
     # Update comments for the TypeIt space in the MongoDB collection
-    result = typeit_space_collection.update_one({'blogId': blogId}, {'$push': {'comments': comment, 'postId': postId}})
+    result = typeit_space_collection.update_one({'blog_id': blogId}, {'$push': {'comments': comment, 'post_id': postId}})
 
     if result.modified_count > 0:
         return jsonify({'message': 'Comment added successfully'})
