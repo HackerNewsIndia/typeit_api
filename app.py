@@ -39,7 +39,7 @@ def create_typeitspace(user_id):
 @app.route('/list_typeit_spaces/<user_id>', methods=['GET'])
 def list_typeit_spaces(user_id):
     # Retrieve the list of TypeIt spaces from the MongoDB collection
-    typeit_spaces = typeit_space_collection.find({"user_id": user_id})
+    typeit_spaces = typeit_space_collection.find({"user_id": ObjectId(user_id)})
     
     # Convert the ObjectId to string for JSON serialization
     typeit_spaces_list = [{'_id': str(space['_id']), 'name': space['name']} for space in typeit_spaces]
