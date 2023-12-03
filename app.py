@@ -31,7 +31,7 @@ def create_typeitspace(user_id):
     data = request.get_json()
     space_name = data.get('name')
     space_id = ObjectId(data.get('_id'))
-    typeit_space_collection.insert_one({'name': space_name, 'blog_id': space_id, 'user_id': user_id})
+    typeit_space_collection.insert_one({'name': space_name, 'blog_id': space_id, 'user_id': ObjectId(user_id)})
     return jsonify({'message': f'TypeIt Space "{space_name}" created successfully'})
 
 
