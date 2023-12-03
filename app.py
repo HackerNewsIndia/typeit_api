@@ -30,7 +30,7 @@ typeit_space_collection = mongo.db.typeit_space
 def create_typeitspace(user_id):
     data = request.get_json()
     space_name = data.get('name')
-    space_id = data.get('_id')
+    space_id = ObjectId(data.get('_id'))
     typeit_space_collection.insert_one({'name': space_name, 'blog_id': space_id, 'user_id': user_id})
     return jsonify({'message': f'TypeIt Space "{space_name}" created successfully'})
 
@@ -65,15 +65,42 @@ def post_comment():
     data = request.get_json()
     blogId = data.get('blog_id')
     postId = data.get('post_id')
+    post_title = data.get('post_title')
     comment = data.get('comment')
+    
 
-    # Update comments for the TypeIt space in the MongoDB collection
-    result = typeit_space_collection.update_one({'blog_id': blogId}, {'$push': {'comments': comment, 'post_id': postId}})
+    # Convert blogId and postId to ObjectId
+    blog_id_object = ObjectId(blogId)
+    post_id_object = ObjectId(postId)
+
+    # Check if the post exists
+    existing_post = typeit_space_collection.find_one({'blog_id': blog_id_object, 'posts_and_its_comments.post_id': post_id_object})
+
+    if existing_post:
+        # If the post exists, update its comments array
+        result = typeit_space_collection.update_one(
+            {'blog_id': blog_id_object, 'posts_and_its_comments.post_id': post_id_object},
+            {'$push': {'posts_and_its_comments.$.comments': comment}}
+        )
+    else:
+        # If the post doesn't exist, create a new post with comments
+        result = typeit_space_collection.update_one(
+            {'blog_id': blog_id_object},
+            {
+                '$push': {
+                    'posts_and_its_comments': {
+                        'post_id': post_id_object,
+                        'post_title': post_title,  # Add post_title to the request JSON
+                        'comments': [comment]
+                    }
+                }
+            }
+        )
 
     if result.modified_count > 0:
         return jsonify({'message': 'Comment added successfully'})
     else:
-        return jsonify({'error': f'TypeIt Space of "{blogId}" not found'}), 404
+        return jsonify({'error': f'TypeIt Space or post not found'}), 404
 
 
 if __name__ == '__main__':
