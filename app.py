@@ -114,7 +114,7 @@ def get_comments(post_id):
             posts_and_comments = typeit_space.get('posts_and_its_comments', [])
 
             # Find the post with the specified post_id
-            selected_post = next((post for post in posts_and_comments if post.get('post_id') == post_id), None)
+            selected_post = next((post for post in posts_and_comments if post.get('post_id') == ObjectId(post_id)), None)
 
             if selected_post:
                 comments = selected_post.get('comments', [])
