@@ -111,11 +111,18 @@ def get_comments(post_id):
 
         if typeit_space:
             # Extract comments for the specified post_id
-            comments = typeit_space['posts_and_its_comments'].get(post_id, {}).get('comments', [])
+            posts_and_comments = typeit_space.get('posts_and_its_comments', [])
 
-            return jsonify({'comments': comments})
+            # Find the post with the specified post_id
+            selected_post = next((post for post in posts_and_comments if post.get('post_id') == post_id), None)
+
+            if selected_post:
+                comments = selected_post.get('comments', [])
+                return jsonify({'comments': comments})
+            else:
+                return jsonify({'error': f'Post with ID "{post_id}" not found'}), 404
         else:
-            return jsonify({'error': f'Post with ID "{post_id}" not found'}), 404
+            return jsonify({'error': f'Post with ID "{post_id}" not found!'}), 404
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
