@@ -107,7 +107,7 @@ def post_comment():
 def get_comments(post_id):
     try:
         # Find the TypeIt space using post_id
-        typeit_space = typeit_space_collection.find_one({'posts_and_its_comments.post_id': post_id})
+        typeit_space = typeit_space_collection.find_one({'posts_and_its_comments.post_id': ObjectId(post_id)})
 
         if typeit_space:
             # Extract comments for the specified post_id
