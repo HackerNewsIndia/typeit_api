@@ -103,5 +103,22 @@ def post_comment():
         return jsonify({'error': f'TypeIt Space or post not found'}), 404
 
 
+@app.route('/get_comments/<post_id>', methods=['GET'])
+def get_comments(post_id):
+    try:
+        # Find the TypeIt space using post_id
+        typeit_space = typeit_space_collection.find_one({'posts_and_its_comments.post_id': post_id})
+
+        if typeit_space:
+            # Extract comments for the specified post_id
+            comments = typeit_space['posts_and_its_comments'].get(post_id, {}).get('comments', [])
+
+            return jsonify({'comments': comments})
+        else:
+            return jsonify({'error': f'Post with ID "{post_id}" not found'}), 404
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     app.run(debug=True)
