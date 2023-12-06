@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import os
 from bson import json_util
 from bson import ObjectId
+from datetime import datetime
 
 load_dotenv()
 app = Flask(__name__)
@@ -67,6 +68,7 @@ def post_comment():
     postId = data.get('post_id')
     post_title = data.get('post_title')
     comment = data.get('comment')
+    timestamp = datetime.now()
     
 
     # Convert blogId and postId to ObjectId
@@ -80,7 +82,7 @@ def post_comment():
         # If the post exists, update its comments array
         result = typeit_space_collection.update_one(
             {'blog_id': blog_id_object, 'posts_and_its_comments.post_id': post_id_object},
-            {'$push': {'posts_and_its_comments.$.comments': comment}}
+            {'$push': {'posts_and_its_comments.$.comments': comment,'posts_and_its_comments.$.timestamp': timestamp}}
         )
     else:
         # If the post doesn't exist, create a new post with comments
