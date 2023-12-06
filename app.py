@@ -82,7 +82,13 @@ def post_comment():
         # If the post exists, update its comments array
         result = typeit_space_collection.update_one(
             {'blog_id': blog_id_object, 'posts_and_its_comments.post_id': post_id_object},
-            {'$push': {'posts_and_its_comments.$.comments.comment': comment,'posts_and_its_comments.$.comments.timestamp': timestamp}}
+            {'$push': {
+                        'posts_and_its_comments.$.comments': {
+                            'comment': comment,
+                            'timestamp': timestamp
+                        }
+                    }
+            }
         )
     else:
         # If the post doesn't exist, create a new post with comments
