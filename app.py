@@ -135,5 +135,31 @@ def get_comments(post_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
+
+@app.route('/posts', methods=['GET'])
+def get_posts():
+    posts_from_db = list(typeit_space_collection.find({}, {'_id': 0}))
+    return jsonify(posts_from_db)
+
+@app.route('/posts/<string:post_id>/like', methods=['POST'])
+def like_post(post_id):
+    post = typeit_space_collection.find_one({"_id": ObjectId(post_id)})
+    if post:
+        typeit_space_collection.update_one({"_id": ObjectId(post_id)}, {"$inc": {"likes": 1}})
+        return jsonify({"message": "Post liked successfully"})
+    else:
+        return jsonify({"error": "Post not found"}), 404
+
+@app.route('/posts/<string:post_id>/love', methods=['POST'])
+def love_post(post_id):
+    post = typeit_space_collection.find_one({"_id": ObjectId(post_id)})
+    if post:
+        typeit_space_collection.update_one({"_id": ObjectId(post_id)}, {"$inc": {"loves": 1}})
+        return jsonify({"message": "Post loved successfully"})
+    else:
+        return jsonify({"error": "Post not found"}), 404
+
+
 if __name__ == '__main__':
     app.run(debug=True)
