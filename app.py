@@ -137,10 +137,20 @@ def get_comments(post_id):
 
 
 
+
 @app.route('/posts', methods=['GET'])
 def get_posts():
-    posts_from_db = list(typeit_space_collection.find({}, {'_id': 0}))
-    return jsonify(posts_from_db)
+    posts_from_db = list(typeit_space_collection.find({}, {'_id': 1, 'content': 1, 'likes': 1, 'loves': 1}))
+    posts_with_counts = [
+        {
+            "_id": str(post["_id"]),
+            "content": post["content"],
+            "likes": post.get("likes", 0),
+            "loves": post.get("loves", 0),
+        }
+        for post in posts_from_db
+    ]
+    return jsonify(posts_with_counts)
 
 @app.route('/posts/<string:post_id>/like', methods=['POST'])
 def like_post(post_id):
