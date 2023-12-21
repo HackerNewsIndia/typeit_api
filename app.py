@@ -132,6 +132,9 @@ def get_comments(post_id):
 
             if selected_post:
                 comments = selected_post.get('comments', [])
+                for comment in comments:
+                    comment['_id'] = str(comment['_id'])
+                    
                 return jsonify({'comments': comments})
             else:
                 return jsonify({'error': f'Post with ID "{post_id}" not found'}), 404
