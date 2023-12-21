@@ -70,6 +70,7 @@ def post_comment():
     comment = data.get('comment')
     timestamp = datetime.now()
     
+    comment_id = ObjectId()
 
     # Convert blogId and postId to ObjectId
     blog_id_object = ObjectId(blogId)
@@ -84,6 +85,7 @@ def post_comment():
             {'blog_id': blog_id_object, 'posts_and_its_comments.post_id': post_id_object},
             {'$push': {
                         'posts_and_its_comments.$.comments': {
+                            '_id': comment_id,
                             'comment': comment,
                             'timestamp': timestamp
                         }
