@@ -175,6 +175,54 @@ def love_post(post_id):
         return jsonify({"message": "Post loved successfully"})
     else:
         return jsonify({"error": "Post not found"}), 404
+    
+
+@app.route('/post_sentiment', methods=['POST'])
+def post_sentiment():
+    data = request.get_json()
+    blogId = data.get('blog_id')
+    postId = data.get('post_id')
+    commentId = data.get('comment_id')  # Assuming you have a unique identifier for each comment
+    sentiment_type = data.get('sentiment_type')  # 'like', 'dislike', or other sentiment types
+    timestamp = datetime.now()
+
+    # Convert blogId, postId, and commentId to ObjectId
+    blog_id_object = ObjectId(blogId)
+    post_id_object = ObjectId(postId)
+    comment_id_object = ObjectId(commentId)
+
+    # Check if the post and comment exist
+    existing_comment = typeit_space_collection.find_one({
+        'blog_id': blog_id_object,
+        'posts_and_its_comments.post_id': post_id_object,
+        'posts_and_its_comments.comments._id': comment_id_object
+    })
+
+    if existing_comment:
+        # If the comment exists, update its sentiment field
+        result = typeit_space_collection.update_one(
+            {
+                'blog_id': blog_id_object,
+                'posts_and_its_comments.post_id': post_id_object,
+                'posts_and_its_comments.comments._id': comment_id_object
+            },
+            {
+                '$set': {
+                    'posts_and_its_comments.$.comments.$.sentiment': {
+                        'type': sentiment_type,
+                        'count': 1
+                    }
+                }
+            }
+        )
+    else:
+        # If the comment doesn't exist, return an error response
+        return jsonify({'error': 'Comment not found'}), 404
+
+    if result.modified_count > 0:
+        return jsonify({'message': 'Sentiment added successfully'})
+    else:
+        return jsonify({'error': 'Sentiment not added'}), 500
 
 
 if __name__ == '__main__':
