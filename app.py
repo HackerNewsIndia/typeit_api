@@ -101,7 +101,11 @@ def post_comment():
                     'posts_and_its_comments': {
                         'post_id': post_id_object,
                         'post_title': post_title,  # Add post_title to the request JSON
-                        'comments': [comment]
+                        'comments': [{
+                            '_id': comment_id,
+                            'comment': comment,
+                            'timestamp': timestamp
+                        }]
                     }
                 }
             }
