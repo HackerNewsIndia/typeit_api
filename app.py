@@ -117,32 +117,58 @@ def post_comment():
         return jsonify({'error': f'TypeIt Space or post not found'}), 404
 
 
+# @app.route('/get_comments/<post_id>', methods=['GET'])
+# def get_comments(post_id):
+#     try:
+#         # Find the TypeIt space using post_id
+#         typeit_space = typeit_space_collection.find_one({'posts_and_its_comments.post_id': ObjectId(post_id)})
+
+#         if typeit_space:
+#             # Extract comments for the specified post_id
+#             posts_and_comments = typeit_space.get('posts_and_its_comments', [])
+
+#             # Find the post with the specified post_id
+#             selected_post = next((post for post in posts_and_comments if post.get('post_id') == ObjectId(post_id)), None)
+
+#             if selected_post:
+#                 comments = selected_post.get('comments', [])
+#                 for comment in comments:
+#                     comment['_id'] = str(comment['_id'])
+                    
+#                 return jsonify({'comments': comments})
+#             else:
+#                 return jsonify({'error': f'Post with ID "{post_id}" not found'}), 404
+#         else:
+#             return jsonify({'error': f'Post with ID "{post_id}" not found!'}), 404
+
+#     except Exception as e:
+#         return jsonify({'error': str(e)}), 500
+
+
 @app.route('/get_comments/<post_id>', methods=['GET'])
 def get_comments(post_id):
     try:
-        # Find the TypeIt space using post_id
-        typeit_space = typeit_space_collection.find_one({'posts_and_its_comments.post_id': ObjectId(post_id)})
+        # Assuming you have a MongoDB collection named 'posts' containing posts and comments
+        # posts_collection = mongo.db.posts
 
-        if typeit_space:
-            # Extract comments for the specified post_id
-            posts_and_comments = typeit_space.get('posts_and_its_comments', [])
+        # Find the post by its ObjectId
+        print(post_id)
+        post = typeit_space_collection.find_one({"posts_and_its_comments.post_id": ObjectId(post_id)})
 
-            # Find the post with the specified post_id
-            selected_post = next((post for post in posts_and_comments if post.get('post_id') == ObjectId(post_id)), None)
-
-            if selected_post:
-                comments = selected_post.get('comments', [])
-                for comment in comments:
+        if post:
+            # post['_id'] = str(post['_id'])
+            comments = post['posts_and_its_comments'][0].get('comments', [])
+            print(comments)
+            for comment in comments:
                     comment['_id'] = str(comment['_id'])
-                    
-                return jsonify({'comments': comments})
-            else:
-                return jsonify({'error': f'Post with ID "{post_id}" not found'}), 404
+            print(comments)
+            
+            return jsonify({"comments": comments})
         else:
-            return jsonify({'error': f'Post with ID "{post_id}" not found!'}), 404
+            return jsonify({"error": "Post not found"}), 404
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
 
@@ -182,50 +208,49 @@ def love_post(post_id):
 
 @app.route('/post_sentiment', methods=['POST'])
 def post_sentiment():
-    data = request.get_json()
-    blogId = data.get('blog_id')
-    postId = data.get('post_id')
-    commentId = data.get('comment_id')  # Assuming you have a unique identifier for each comment
-    sentiment_type = data.get('sentiment_type')  # 'like', 'dislike', or other sentiment types
-    timestamp = datetime.now()
+    try:
+        data = request.get_json()
 
-    # Convert blogId, postId, and commentId to ObjectId
-    blog_id_object = ObjectId(blogId)
-    post_id_object = ObjectId(postId)
-    comment_id_object = ObjectId(commentId)
+        blog_id = data.get('blog_id')
+        post_id = data.get('post_id')
+        comment_id = data.get('comment_id')
+        sentiment_type = data.get('sentiment_type')
 
-    # Check if the post and comment exist
-    existing_comment = typeit_space_collection.find_one({
-        'blog_id': blog_id_object,
-        'posts_and_its_comments.post_id': post_id_object,
-        'posts_and_its_comments.comments._id': comment_id_object
-    })
+        existing_comment = typeit_space_collection.find_one({
+            'blog_id': ObjectId(blog_id),
+            'posts_and_its_comments.post_id': ObjectId(post_id),
+            'posts_and_its_comments.comments._id': ObjectId(comment_id)
+        })
 
-    if existing_comment:
-        # If the comment exists, update its sentiment field
-        result = typeit_space_collection.update_one(
-            {
-                'blog_id': blog_id_object,
-                'posts_and_its_comments.post_id': post_id_object,
-                'posts_and_its_comments.comments._id': comment_id_object
-            },
-            {
-                '$set': {
-                    'posts_and_its_comments.$.comments.$.sentiment': {
-                        'type': sentiment_type,
-                        'count': 1
+        if existing_comment:
+            # If the comment exists, update its sentiments array
+            typeit_space_collection.update_one(
+                {
+                    'blog_id': ObjectId(blog_id),
+                    'posts_and_its_comments.post_id': ObjectId(post_id),
+                    'posts_and_its_comments.comments._id': ObjectId(comment_id)
+                },
+                {
+                    '$push': {
+                        'posts_and_its_comments.$[post].comments.$[comm].sentiments': {
+                            'sentiment_type': sentiment_type,
+                            'count': 1
+                        }
                     }
-                }
-            }
-        )
-    else:
-        # If the comment doesn't exist, return an error response
-        return jsonify({'error': 'Comment not found'}), 404
+                },
+                array_filters=[
+                    {'post.comments._id': ObjectId(comment_id)},
+                    {'comm._id': ObjectId(comment_id)}
+                ]
+            )
+            return jsonify({'message': 'Sentiment added successfully'})
+        else:
+            # If the comment doesn't exist, return an error
+            return jsonify({'error': f'Comment_id not found'}), 404
 
-    if result.modified_count > 0:
-        return jsonify({'message': 'Sentiment added successfully'})
-    else:
-        return jsonify({'error': 'Sentiment not added'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 
 if __name__ == '__main__':
