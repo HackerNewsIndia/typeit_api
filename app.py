@@ -69,6 +69,7 @@ def post_comment():
     post_title = data.get('post_title')
     comment = data.get('comment')
     timestamp = datetime.now()
+    commented_user = data.get('commented_user')
     
     comment_id = ObjectId()
 
@@ -87,7 +88,8 @@ def post_comment():
                         'posts_and_its_comments.$.comments': {
                             '_id': comment_id,
                             'comment': comment,
-                            'timestamp': timestamp
+                            'timestamp': timestamp,
+                            'commented_user': commented_user
                         }
                     }
             }
@@ -104,7 +106,8 @@ def post_comment():
                         'comments': [{
                             '_id': comment_id,
                             'comment': comment,
-                            'timestamp': timestamp
+                            'timestamp': timestamp,
+                            'commented_user': commented_user
                         }]
                     }
                 }
