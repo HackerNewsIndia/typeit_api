@@ -253,6 +253,32 @@ def post_sentiment():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/get_sentiment', methods=['GET'])
+def get_sentiment():
+    try:
+        # Assuming you want to retrieve sentiments based on blog_id, post_id, and comment_id
+        blog_id = request.args.get('blog_id')
+        post_id = request.args.get('post_id')
+        comment_id = request.args.get('comment_id')
+
+        existing_comment = typeit_space_collection.find_one({
+            'blog_id': ObjectId(blog_id),
+            'posts_and_its_comments.post_id': ObjectId(post_id),
+            'posts_and_its_comments.comments._id': ObjectId(comment_id)
+        })
+
+        if existing_comment:
+            # If the comment exists, retrieve sentiments
+            sentiments = existing_comment['posts_and_its_comments'][0]['comments'][0]['sentiments']
+            return jsonify({'sentiments': sentiments})
+        else:
+            # If the comment doesn't exist, return an error
+            return jsonify({'error': 'Comment not found'}), 404
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
