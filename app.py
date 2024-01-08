@@ -219,6 +219,8 @@ def post_sentiment():
         comment_id = data.get('comment_id')
         sentiment_type = data.get('sentiment_type')
         user_who_selected_this_icon = data.get('user_who_selected_this_icon')
+        print(sentiment_type)
+        print(user_who_selected_this_icon)
 
         existing_comment = typeit_space_collection.find_one({
             'blog_id': ObjectId(blog_id),
@@ -235,9 +237,10 @@ def post_sentiment():
                     'posts_and_its_comments.comments._id': ObjectId(comment_id)
                 },
                 {
-                    '$push': {
-                        f'posts_and_its_comments.$[post].comments.$[comm].sentiments.{sentiment_type}': user_who_selected_this_icon
-                    }
+                    '$set': {
+                                f'posts_and_its_comments.$[post].comments.$[comm].sentiments.{sentiment_type}': [user_who_selected_this_icon]
+                            }
+                            
                 },
                 array_filters=[
                     {'post.comments._id': ObjectId(comment_id)},
