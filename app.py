@@ -281,6 +281,25 @@ def get_sentiment():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/blog_comments_count/<string:blog_id>', methods=['GET'])
+def get_blog_comments_count(blog_id):
+    # Convert blog_id to ObjectId
+    blog_id_object = ObjectId(blog_id)
+    
+    # Query the MongoDB collection for posts under the specified blog_id
+    posts = typeit_space_collection.find({'blog_id': blog_id_object})
+
+    total_comments_count = 0
+    
+    # Iterate through each post and calculate the total number of comments
+    for post in posts:
+        if 'posts_and_its_comments' in post:
+            for post_comments in post['posts_and_its_comments']:
+                if 'comments' in post_comments:
+                    total_comments_count += len(post_comments['comments'])
+
+    return jsonify({'total_comments_count': total_comments_count})
+
 
 
 if __name__ == '__main__':
