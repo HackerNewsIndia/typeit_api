@@ -14,6 +14,8 @@ app.config['MONGO_URI'] = os.environ.get('MONGO_URI')
 mongo = PyMongo(app)
 
 # Define the MongoDB collection
+diaryblog_space_collection = mongo.db.diaryblog_space
+diaryblog_post_collection = mongo.db.diaryblog_post
 typeit_space_collection = mongo.db.typeit_space
 
 
@@ -94,6 +96,15 @@ def post_comment():
                     }
             }
         )
+        diaryblog_space_collection.update_one(
+        {"_id": ObjectId(blog_id_object)},
+        {"$inc": {"total_comments_count": 1}}
+        )
+        diaryblog_post_collection.update_one(
+        {"_id": ObjectId(post_id_object)},
+        {"$inc": {"total_comments_count": 1}}
+        )
+        
     else:
         # If the post doesn't exist, create a new post with comments
         result = typeit_space_collection.update_one(
@@ -113,7 +124,14 @@ def post_comment():
                 }
             }
         )
-
+        diaryblog_space_collection.update_one(
+        {"_id": ObjectId(blog_id_object)},
+        {"$inc": {"total_comments_count": 1}}
+        )
+        diaryblog_post_collection.update_one(
+        {"_id": ObjectId(post_id_object)},
+        {"$inc": {"total_comments_count": 1}}
+        )
     if result.modified_count > 0:
         return jsonify({'message': 'Comment added successfully'})
     else:
