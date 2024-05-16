@@ -9,7 +9,14 @@ from datetime import datetime
 
 load_dotenv()
 app = Flask(__name__)
-CORS(app)
+#CORS(app)
+
+
+cors = CORS(app, resources={
+    r"/api/*": {"origins": "*"},
+    r"/api/fetch-content": {"origins": "*"}
+})
+
 app.config['MONGO_URI'] = os.environ.get('MONGO_URI')
 mongo = PyMongo(app)
 
